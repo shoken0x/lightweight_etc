@@ -4,6 +4,7 @@
 #include<sys/types.h>
 #include<pthread.h>
 #include<unistd.h>  // usleep
+#include <limits.h>
 
 // socket
 #include<sys/socket.h>
@@ -85,6 +86,26 @@ void *atack(void *arg) {
 	return arg;
 }
 
+
+pthread_attr_t make_min_stack()
+{
+long default_stack_size = 10485760;
+
+pthread_attr_t attr;
+pthread_attr_init(&attr);
+//pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN + 1000);
+
+pthread_attr_setstacksize(&attr, default_stack_size);
+//printf("[DEBUG]PTHREAD_STACK_MIN : %d\n", PTHREAD_STACK_MIN);
+
+size_t stacksize;
+pthread_attr_getstacksize (&attr, &stacksize);
+printf("[DEBUG]new stack size = %d\n", (int)stacksize);
+
+return attr;
+}
+
+
 //==========================================================
 int main(int ac, char *av[]) {
 	pid_t      pid;    // process id
@@ -101,6 +122,9 @@ int main(int ac, char *av[]) {
 		fprintf(stderr, "Usage: %s thread_num count_down hostname path\n", av[0]);
 		return 1;
 	}
+
+	// thread size
+	pthread_attr_t attr = make_min_stack();
 	
 	// thread num
 	thread_num = atoi(av[1]);
@@ -119,6 +143,7 @@ int main(int ac, char *av[]) {
 	
 	//-------------------------------------
 	// malloc
+	printf("[DEBUG]malloc size : %lu bytes\n", sizeof(pthread_t) * thread_num + sizeof(int) * thread_num);
 	tlist = malloc(sizeof(pthread_t) * thread_num);
 	ilist = malloc(sizeof(int)       * thread_num);
 	
@@ -126,14 +151,18 @@ int main(int ac, char *av[]) {
 	pid = getpid();
 	
 	// create thread
+	printf("[DEBUG]create thread start\n");
 	for(i=0; i<thread_num; i++) {
 		ilist[i] = i;
-		status = pthread_create(tlist+i, NULL, atack, (void*)(ilist+i));
+		status = pthread_create(tlist+i, &attr, atack, (void*)(ilist+i));
 		if( status != 0 ) {
 			fprintf(stderr, "Error: cannot create a thread: %d\n", i);
 			tlist[i] = 0;
+		}else{
+			printf("%d,", i);
 		}
 	}
+	printf("[DEBUG]create thread end\n");
 	
 	//-------------------------------------
 	// count down
@@ -158,4 +187,5 @@ int main(int ac, char *av[]) {
 	
 	return 0;
 }
+
 
