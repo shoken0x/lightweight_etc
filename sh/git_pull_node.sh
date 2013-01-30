@@ -10,7 +10,7 @@ source /root/.bash_profile
 touch_date="touch `date +'last_git_pull_node%Y%m%d_%k%M%S'`"
 node_stop="/etc/init.d/node stop"
 node_start="/etc/init.d/node start"
-git_command="git pull; cd ; rm last_git_pull_node*"
+git_command="git pull; npm install; cd ; rm last_git_pull_node*"
 
 
 ## ssh test
