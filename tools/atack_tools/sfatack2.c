@@ -12,10 +12,14 @@
 #include<arpa/inet.h>
 #include<netdb.h>
 
+// time
+#include <sys/resource.h>
+
 //==========================================================
 // global
 int atack_start = 0;
 char *host  = NULL;
+char *ip    = NULL;
 char *path  = NULL;
 int  *ilist = NULL;  // thread index list
 
@@ -30,6 +34,9 @@ void *atack(void *arg) {
 	char buf[64];  // recv buf
 	ssize_t recv_size = 0;
 	ssize_t send_size = 0;
+	//struct rusage usage;
+	//struct timeval ut1, ut2;
+	//struct timeval st1, st2;
 	
 	// get info
 	pid = getpid();
@@ -45,8 +52,7 @@ void *atack(void *arg) {
 	
 	// wait
 	while( ! atack_start ) {
-		//usleep(10000);  // timer accuracy 10ms = 10000us
-		usleep(100000);  // timer accuracy 100ms = 100000us
+		usleep(10000);  // timer accuracy 10ms = 10000us
 	}
 	
 	// atack start
@@ -56,15 +62,19 @@ void *atack(void *arg) {
 	memset(&addr, 0, sizeof(struct sockaddr_in));
 	addr.sin_family      = AF_INET;
 	addr.sin_port        = htons(80);
-	addr.sin_addr.s_addr = inet_addr(host);
+	addr.sin_addr.s_addr = inet_addr(ip);
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	
 	// connect
+	//getrusage(RUSAGE_SELF, &usage );
+	//ut1 = usage.ru_utime;
+	//st1 = usage.ru_stime;
 	ret = connect( sock, (struct sockaddr*)(&addr), sizeof(struct sockaddr_in) );
 	
 	// send
 	sprintf(msg, "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", path, host);
-	send_size = send(sock, msg, strlen(msg)+1, 0);
+	printf("[DEBUG]msg : %s\n",msg);
+	send_size = send(sock, msg, strlen(msg), 0);
 	
 	// recv
 	while(1) {
@@ -83,6 +93,12 @@ void *atack(void *arg) {
 	
 	// finish
 	close(sock);
+	//getrusage(RUSAGE_SELF, &usage );
+	//ut2 = usage.ru_utime;
+	//st2 = usage.ru_stime;
+	//printf("user time = %lf, ", (ut2.tv_sec - ut1.tv_sec) + (ut2.tv_usec - ut1.tv_usec)*1.0E-6);
+	//printf("sys  time = %lf\n", (st2.tv_sec - st1.tv_sec) + (st2.tv_usec - st1.tv_usec)*1.0E-6);
+	//printf("[DEBUG]finished\n");
 	
 	return arg;
 }
@@ -116,11 +132,14 @@ int main(int ac, char *av[]) {
 	int status;
 	int i;
 	int count_down;
+	struct rusage usage;
+	struct timeval ut1, ut2;
+	struct timeval st1, st2;
 	
 	//-------------------------------------
 	// check args
-	if(ac != 5) {
-		fprintf(stderr, "Usage: %s thread_num count_down hostname path\n", av[0]);
+	if(ac != 6) {
+		fprintf(stderr, "Usage: %s thread_num count_down hostname ipaddr path\n", av[0]);
 		return 1;
 	}
 
@@ -140,7 +159,8 @@ int main(int ac, char *av[]) {
 	
 	// url
 	host = av[3];
-	path = av[4];
+	ip   = av[4];
+	path = av[5];
 	
 	//-------------------------------------
 	// malloc
@@ -172,6 +192,10 @@ int main(int ac, char *av[]) {
 		sleep(1);
 	}
 	atack_start = 1;
+
+	getrusage(RUSAGE_SELF, &usage );
+	ut1 = usage.ru_utime;
+	st1 = usage.ru_stime;
 	
 	//-------------------------------------
 	// join
@@ -185,6 +209,14 @@ int main(int ac, char *av[]) {
 	//-------------------------------------
 	// free : not required
 	//free(tlist);
+
+	getrusage(RUSAGE_SELF, &usage );
+	ut2 = usage.ru_utime;
+	st2 = usage.ru_stime;
+	printf("\nAll request-responce finished during: %lf sec\n", (st2.tv_sec - st1.tv_sec) + (st2.tv_usec - st1.tv_usec)*1.0E-6);
+	//printf(" user time = %lf, ", (ut2.tv_sec - ut1.tv_sec) + (ut2.tv_usec - ut1.tv_usec)*1.0E-6);
+	//printf(" sys  time = %lf\n", (st2.tv_sec - st1.tv_sec) + (st2.tv_usec - st1.tv_usec)*1.0E-6);
+	printf("Throughput: %lf pageview/sec\n",1/(((st2.tv_sec - st1.tv_sec) + (st2.tv_usec - st1.tv_usec)*1.0E-6)/thread_num));
 	
 	return 0;
 }
