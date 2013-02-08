@@ -64,7 +64,7 @@ void *atack(void *arg) {
 	
 	// send
 	sprintf(msg, "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", path, host);
-	send_size = send(sock, msg, strlen(msg)+1, 0);
+	send_size = send(sock, msg, strlen(msg), 0);
 	
 	// recv
 	while(1) {
