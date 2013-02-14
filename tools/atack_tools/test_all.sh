@@ -38,7 +38,6 @@ mkdir ${result_dir}/logs/ptn5/node
 mkdir ${result_dir}/logs/ptn5/mongo
 summary_file=${result_root_dir}/${result_sub_dir}/summary
 
-
 # 取得するログファイルへのフルパス
 ### Apache2.2
 apache22_error_log="/opt/apache2.2/logs/error_log"
@@ -55,6 +54,11 @@ nginx_error_log="/opt/nginx/logs/error.log"
 node_log="/var/log/node.log"
 ### MongoDB
 mongo_log="/var/log/mongod.log"
+
+# リソース取得シェル用コマンド
+logging_command_start="cd /git/lightweight_etc/sh/logging/; /etc/init.d/sysstat start; sh logging_start.sh < /dev/null > /dev/null 2> /dev/null"
+logging_command_stop="cd /git/lightweight_etc/sh/logging/; sh logging_stop.sh; /etc/init.d/sysstat stop"
+logging_command_result="/git/lightweight_etc/sh/logging/perf/latest/*"
 
 
 ################
@@ -110,9 +114,19 @@ do
 		sleep 300
 		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn1.rb start
 		sleep 300
+
+		# リソースログ取得用シェルを起動する
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root apache22-server "${logging_command_start}"
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root jboss-server    "${logging_command_start}"
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server   "${logging_command_start}"
 		
 		# sfatack_randツールを使ってパターン1に同時アクセスを試みる
 		/git/lightweight_etc/tools/atack_tools/sfatack_rand ${now_connection} 3 10.0.0.14 /oracle
+		
+		# リソースログ取得用シェルを終了する
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root apache22-server "${logging_command_stop}"
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root jboss-server    "${logging_command_stop}"
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server   "${logging_command_stop}"
 		
 		# パターン1の各ミドルのログを取得する
 		### Apache2.2
@@ -126,10 +140,11 @@ do
 		
 		# パターン1の各サーバのリソースログを取得する
 		### Apache2.2
-		
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@apache22-server:${logging_command_result}  ${result_dir}/logs/ptn1/apache/${now_connection}/${loop_counter}/
 		### JBoss
-		
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@jboss-server:${logging_command_result}     ${result_dir}/logs/ptn1/jboss/${now_connection}/${loop_counter}/
 		### Oracle
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@oracle-server:${logging_command_result}    ${result_dir}/logs/ptn1/oracle/${now_connection}/${loop_counter}/
 	
 	done
 
@@ -200,8 +215,18 @@ do
 		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn4.rb start
 		sleep 300
 		
+		# リソースログ取得用シェルを起動する
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server  "${logging_command_start}"
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nodejs-server "${logging_command_start}"
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server "${logging_command_start}"
+
 		# sfatack_randツールを使ってパターン4に同時アクセスを試みる
 		/git/lightweight_etc/tools/atack_tools/sfatack_rand ${now_connection} 3 10.0.0.16 /oracle
+		
+		# リソースログ取得用シェルを終了する
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server  "${logging_command_stop}"
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nodejs-server "${logging_command_stop}"
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server "${logging_command_stop}"
 		
 		# パターン4の各ミドルのログを取得する
 		### Nginx
@@ -214,10 +239,11 @@ do
 		
 		# パターン4の各サーバのリソースログを取得する
 		### Nginx
-		
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${logging_command_result}   ${result_dir}/logs/ptn4/apache/${now_connection}/${loop_counter}/
 		### Node.js
-		
-		### Oracle
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nodejs-server:${logging_command_result}  ${result_dir}/logs/ptn4/apache/${now_connection}/${loop_counter}/
+		### Oracl
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@oracle-server:${logging_command_result}  ${result_dir}/logs/ptn4/apache/${now_connection}/${loop_counter}/
 	
 	done
 
@@ -283,13 +309,23 @@ do
 			> ${mongo_log}"
 		
 		# Nginx、Node.js、MongoDBサーバを再起動
-		#ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn5.rb stop
-		#sleep 300
-		#ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn5.rb start
-		#sleep 300
+		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn5.rb stop
+		sleep 300
+		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn5.rb start
+		sleep 300
+
+                # リソースログ取得用シェルを起動する
+                ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server  "${logging_command_start}"
+                ssh -n -i ~/.ssh/lwRandDkey.pem -l root nodejs-server "${logging_command_start}"
+                ssh -n -i ~/.ssh/lwRandDkey.pem -l root mongo-server  "${logging_command_start}"
 		
 		# sfatack_randツールを使ってパターン5に同時アクセスを試みる
 		/git/lightweight_etc/tools/atack_tools/sfatack_rand ${now_connection} 3 10.0.0.16 /mongo
+
+                # リソースログ取得用シェルを終了する
+                ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server  "${logging_command_stop}"
+                ssh -n -i ~/.ssh/lwRandDkey.pem -l root nodejs-server "${logging_command_stop}"
+                ssh -n -i ~/.ssh/lwRandDkey.pem -l root mongo-server  "${logging_command_stop}"
 		
 		# パターン5の各ミドルのログを取得する
 		### Nginx
@@ -302,10 +338,11 @@ do
 		
 		# パターン5の各サーバのリソースログを取得する
 		### Nginx
-		
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${logging_command_result}   ${result_dir}/logs/ptn5/apache/${now_connection}/${loop_counter}/
 		### Node.js
-		
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nodejs-server:${logging_command_result}  ${result_dir}/logs/ptn5/apache/${now_connection}/${loop_counter}/
 		### MongoDB
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@mongo-server:${logging_command_result}   ${result_dir}/logs/ptn5/apache/${now_connection}/${loop_counter}/
 	
 	done
 
