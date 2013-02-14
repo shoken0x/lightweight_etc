@@ -13,6 +13,7 @@ function kill_process() {
 
 ### Main
 mkdir -p $OUT_DIR
+mkdir -p $LATEST_DIR
 
 echo `date "+%Y/%m/%d %H:%M:%S"` > $WORK_DIR/stop_time.txt
 
@@ -36,7 +37,9 @@ sar -A -f /var/log/sa/sa$now_day > $WORK_DIR/sar$now_day.log
 #cat $WORK_DIR/sar$prev_day.log $WORK_DIR/sar$now_day.log > $WORK_DIR/sar.log
 cat $WORK_DIR/sar$now_day.log > $WORK_DIR/sar.log
 
-# clena up
+# clean up
 cp $WORK_DIR/* $OUT_DIR
+rm -rf $LATEST_DIR/*
+cp $WORK_DIR/* $LATEST_DIR
 rm -rf $WORK_DIR
 
