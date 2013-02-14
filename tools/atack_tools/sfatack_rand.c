@@ -14,7 +14,7 @@
 #include<arpa/inet.h>
 #include<netdb.h>
 
-#define USER_ID_MAX 3000000
+#define USER_ID_MAX 300000
 #define BUKKEN_ID_MAX 50000
 
 //==========================================================
@@ -91,19 +91,19 @@ void *atack(void *arg) {
 	send_size = send(sock, msg, strlen(msg), 0);
 	
 	// recv
-//	while(1) {
-//		recv_size = recv(sock, buf, 1, 0);  // only 1 byte
-//		if(recv_size == -1) {
-//			fprintf(stderr, "[%6d] pid=%d, tid=%ld : recv() socket error.\n", *((int*)arg), pid, (long)tid);
-//			break;
-//		}
-//		if(recv_size == 0) {
-//			break;
-//		}
-//		putchar(buf[0]);
-//		fflush(stdout);
-//		//usleep(10000);  // delay
-//	}
+	while(1) {
+		recv_size = recv(sock, buf, 1, 0);  // only 1 byte
+		if(recv_size == -1) {
+			fprintf(stderr, "[%6d] pid=%d, tid=%ld : recv() socket error.\n", *((int*)arg), pid, (long)tid);
+			break;
+		}
+		if(recv_size == 0) {
+			break;
+		}
+		//putchar(buf[0]);
+		fflush(stdout);
+		//usleep(10000);  // delay
+	}
 	
 	// finish
 	close(sock);

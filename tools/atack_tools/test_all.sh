@@ -2,9 +2,9 @@
 
 # 使用方法
 # 
-# auto_test start incremental end
+# test_all start incremental end
 #
-# ex) auto_test 1000 1000 10000
+# ex) test_all 1000 1000 10000
 #     1000件の同時接続から開始し、1000件ずつ増やし、10000件までテストする。
 #
 
@@ -49,16 +49,19 @@ jboss_server_log="/opt/jboss-as-7.1.1.Final/standalone/log/server.log"
 ### Oracle
 oracle_clsc_log="/u01/app/oracle/product/11.2.0/dbhome_1/log/oracle-server/client/clsc.log"
 ### Nginx
-
+nginx_access_log="/opt/nginx/logs/access.log"
+nginx_error_log="/opt/nginx/logs/error.log"
 ### Node.js
-
+node_log="/var/log/node.log"
 ### MongoDB
-
+mongo_log="/var/log/mongod.log"
 
 
 ################
 # パターン1
 ################
+
+echo "パターン1開始" >> ${summary_file}
 
 ##### 自動テストループ #####
 start_connection=$1
@@ -103,10 +106,10 @@ do
 			> ${oracle_clsc_log}"
 		
 		# Apache2.2、JBoss、Oracleサーバを再起動
-		#ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn1.rb stop
-		#sleep 300
-		#ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn1.rb start
-		#sleep 300
+		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn1.rb stop
+		sleep 300
+		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn1.rb start
+		sleep 300
 		
 		# sfatack_randツールを使ってパターン1に同時アクセスを試みる
 		/git/lightweight_etc/tools/atack_tools/sfatack_rand ${now_connection} 3 10.0.0.14 /oracle
@@ -133,6 +136,182 @@ do
 	# 平均値集計出力
 	echo "同時接続数${now_connection}の時の200レスポンス数（平均）" >> ${summary_file}
 	echo "apache：`expr \`cat ${result_dir}/logs/ptn1/apache/${now_connection}/*/access_log | grep 200 | wc -l\` / ${count_for_average}` / ${now_connection}" >> ${summary_file}
+
+	# ループ制御
+	now_connection=`expr ${now_connection} + ${incremental_connection}`
+	if [ ${now_connection} -gt ${end_connection} ]; then
+		break
+	fi
+
+done
+
+
+
+################
+# パターン4
+################
+
+echo "パターン4開始" >> ${summary_file}
+
+##### 自動テストループ #####
+start_connection=$1
+incremental_connection=$2
+end_connection=$3
+now_connection=${start_connection}
+
+while :
+do
+	echo "コネクション数：${now_connection}"
+
+	mkdir ${result_dir}/logs/ptn4/nginx/${now_connection}
+	mkdir ${result_dir}/logs/ptn4/node/${now_connection}
+	mkdir ${result_dir}/logs/ptn4/oracle/${now_connection}
+	
+	##### 平均値取得用ループ #####
+	loop_counter=0
+	while :
+	do
+		# ループ制御
+		loop_counter=`expr ${loop_counter} + 1`
+		if [ ${loop_counter} -gt ${count_for_average} ]; then
+			break
+		else
+			mkdir ${result_dir}/logs/ptn4/nginx/${now_connection}/${loop_counter}
+			mkdir ${result_dir}/logs/ptn4/node/${now_connection}/${loop_counter}
+			mkdir ${result_dir}/logs/ptn4/oracle/${now_connection}/${loop_counter}
+		fi
+		echo "${loop_counter}回目"
+	
+		# Nginx、Node.js、MongoDBのログをローテーションして消去
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server "hostname;\
+			cp ${nginx_access_log} ${nginx_access_log}_${result_sub_dir}_${loop_counter};\
+			cp ${nginx_error_log} ${nginx_error_log}_${result_sub_dir}_${loop_counter};\
+			> ${nginx_access_log}; > ${nginx_error_log}"
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nodejs-server    "hostname;\
+			cp ${node_log} ${node_log}_${result_sub_dir}_${loop_counter};\
+			> ${node_log}"
+                ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server   "hostname;\
+                        cp ${oracle_clsc_log} ${oracle_clsc_log}_${result_sub_dir}_${loop_counter};\
+                        > ${oracle_clsc_log}"
+		
+		# Nginx、Node.js、Oracleサーバを再起動
+		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn4.rb stop
+		sleep 300
+		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn4.rb start
+		sleep 300
+		
+		# sfatack_randツールを使ってパターン4に同時アクセスを試みる
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand ${now_connection} 3 10.0.0.16 /oracle
+		
+		# パターン4の各ミドルのログを取得する
+		### Nginx
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${nginx_error_log}  ${result_dir}/logs/ptn4/nginx/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${nginx_access_log} ${result_dir}/logs/ptn4/nginx/${now_connection}/${loop_counter}/
+		### Node.js
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nodejs-server:${node_log}        ${result_dir}/logs/ptn4/node/${now_connection}/${loop_counter}/
+		### Oracle
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@oracle-server:${oracle_clsc_log} ${result_dir}/logs/ptn4/oracle/${now_connection}/${loop_counter}/
+		
+		# パターン4の各サーバのリソースログを取得する
+		### Nginx
+		
+		### Node.js
+		
+		### Oracle
+	
+	done
+
+	# 平均値集計出力
+	echo "同時接続数${now_connection}の時の200レスポンス数（平均）" >> ${summary_file}
+	echo "nginx：`expr \`cat ${result_dir}/logs/ptn4/nginx/${now_connection}/*/access.log | grep 200 | wc -l\` / ${count_for_average}` / ${now_connection}" >> ${summary_file}
+
+	# ループ制御
+	now_connection=`expr ${now_connection} + ${incremental_connection}`
+	if [ ${now_connection} -gt ${end_connection} ]; then
+		break
+	fi
+
+done
+
+
+
+################
+# パターン5
+################
+
+echo "パターン5開始" >> ${summary_file}
+
+##### 自動テストループ #####
+start_connection=$1
+incremental_connection=$2
+end_connection=$3
+now_connection=${start_connection}
+
+while :
+do
+	echo "コネクション数：${now_connection}"
+
+	mkdir ${result_dir}/logs/ptn5/nginx/${now_connection}
+	mkdir ${result_dir}/logs/ptn5/node/${now_connection}
+	mkdir ${result_dir}/logs/ptn5/mongo/${now_connection}
+	
+	##### 平均値取得用ループ #####
+	loop_counter=0
+	while :
+	do
+		# ループ制御
+		loop_counter=`expr ${loop_counter} + 1`
+		if [ ${loop_counter} -gt ${count_for_average} ]; then
+			break
+		else
+			mkdir ${result_dir}/logs/ptn5/nginx/${now_connection}/${loop_counter}
+			mkdir ${result_dir}/logs/ptn5/node/${now_connection}/${loop_counter}
+			mkdir ${result_dir}/logs/ptn5/mongo/${now_connection}/${loop_counter}
+		fi
+		echo "${loop_counter}回目"
+	
+		# Nginx、Node.js、MongoDBのログをローテーションして消去
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server "hostname;\
+			cp ${nginx_access_log} ${nginx_access_log}_${result_sub_dir}_${loop_counter};\
+			cp ${nginx_error_log} ${nginx_error_log}_${result_sub_dir}_${loop_counter};\
+			> ${nginx_access_log}; > ${nginx_error_log}"
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nodejs-server    "hostname;\
+			cp ${node_log} ${node_log}_${result_sub_dir}_${loop_counter};\
+			> ${node_log}"
+		ssh -n -i ~/.ssh/lwRandDkey.pem -l root mongo-server   "hostname;\
+			cp ${mongo_log} ${mongo_log}_${result_sub_dir}_${loop_counter};\
+			> ${mongo_log}"
+		
+		# Nginx、Node.js、MongoDBサーバを再起動
+		#ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn5.rb stop
+		#sleep 300
+		#ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn5.rb start
+		#sleep 300
+		
+		# sfatack_randツールを使ってパターン5に同時アクセスを試みる
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand ${now_connection} 3 10.0.0.16 /mongo
+		
+		# パターン5の各ミドルのログを取得する
+		### Nginx
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${nginx_error_log}  ${result_dir}/logs/ptn5/nginx/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${nginx_access_log} ${result_dir}/logs/ptn5/nginx/${now_connection}/${loop_counter}/
+		### Node.js
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nodejs-server:${node_log}        ${result_dir}/logs/ptn5/node/${now_connection}/${loop_counter}/
+		### MongoDB
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@mongo-server:${mongo_log}        ${result_dir}/logs/ptn5/mongo/${now_connection}/${loop_counter}/
+		
+		# パターン5の各サーバのリソースログを取得する
+		### Nginx
+		
+		### Node.js
+		
+		### MongoDB
+	
+	done
+
+	# 平均値集計出力
+	echo "同時接続数${now_connection}の時の200レスポンス数（平均）" >> ${summary_file}
+	echo "nginx：`expr \`cat ${result_dir}/logs/ptn5/nginx/${now_connection}/*/access.log | grep 200 | wc -l\` / ${count_for_average}` / ${now_connection}" >> ${summary_file}
 
 	# ループ制御
 	now_connection=`expr ${now_connection} + ${incremental_connection}`
