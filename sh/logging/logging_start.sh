@@ -59,14 +59,12 @@ echo "netstat pid : $PID"
 # exec_jstat "in"
 
 # tail log file
-cnt=0
-for file in ${LOG_FILE[*]}; do
-
-    if [ -r $file ]; then
-        echo "tailed : $file"
-        filename=`expr $file : "/.*/\(.*\)"`
-        tail -n 0 -f --pid=`cat $WORK_DIR/sadc.pid` $file > $WORK_DIR/${cnt}_$filename &
-        cnt=$((cnt+1))
-    fi
-
-done
+## cnt=0
+## for file in ${LOG_FILE[*]}; do
+##    if [ -r $file ]; then
+##       echo "tailed : $file"
+##        filename=`expr $file : "/.*/\(.*\)"`
+##        tail -n 0 -f --pid=`cat $WORK_DIR/sadc.pid` $file > $WORK_DIR/${cnt}_$filename &
+##        cnt=$((cnt+1))
+##    fi
+##done
