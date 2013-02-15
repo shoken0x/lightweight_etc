@@ -150,7 +150,7 @@ do
 
 	# 平均値集計出力
 	echo "同時接続数${now_connection}の時の200レスポンス数（平均）" >> ${summary_file}
-	echo "apache：`expr \`cat ${result_dir}/logs/ptn1/apache/${now_connection}/*/access_log | grep 200 | wc -l\` / ${count_for_average}` / ${now_connection}" >> ${summary_file}
+	echo "apache：`expr \`cat ${result_dir}/logs/ptn1/apache/${now_connection}/*/access_log | grep ' 200 ' | wc -l\` / ${count_for_average}` / ${now_connection}" >> ${summary_file}
 
 	# ループ制御
 	now_connection=`expr ${now_connection} + ${incremental_connection}`
@@ -249,7 +249,7 @@ do
 
 	# 平均値集計出力
 	echo "同時接続数${now_connection}の時の200レスポンス数（平均）" >> ${summary_file}
-	echo "nginx：`expr \`cat ${result_dir}/logs/ptn4/nginx/${now_connection}/*/access.log | grep 200 | wc -l\` / ${count_for_average}` / ${now_connection}" >> ${summary_file}
+	echo "nginx：`expr \`cat ${result_dir}/logs/ptn4/nginx/${now_connection}/*/access.log | grep ' 200 ' | wc -l\` / ${count_for_average}` / ${now_connection}" >> ${summary_file}
 
 	# ループ制御
 	now_connection=`expr ${now_connection} + ${incremental_connection}`
@@ -348,7 +348,7 @@ do
 
 	# 平均値集計出力
 	echo "同時接続数${now_connection}の時の200レスポンス数（平均）" >> ${summary_file}
-	echo "nginx：`expr \`cat ${result_dir}/logs/ptn5/nginx/${now_connection}/*/access.log | grep 200 | wc -l\` / ${count_for_average}` / ${now_connection}" >> ${summary_file}
+	echo "nginx：`expr \`cat ${result_dir}/logs/ptn5/nginx/${now_connection}/*/access.log | grep ' 200 ' | wc -l\` / ${count_for_average}` / ${now_connection}" >> ${summary_file}
 
 	# ループ制御
 	now_connection=`expr ${now_connection} + ${incremental_connection}`
