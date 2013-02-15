@@ -239,11 +239,11 @@ do
 		
 		# パターン4の各サーバのリソースログを取得する
 		### Nginx
-		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${logging_command_result}   ${result_dir}/logs/ptn4/apache/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${logging_command_result}   ${result_dir}/logs/ptn4/nginx/${now_connection}/${loop_counter}/
 		### Node.js
-		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nodejs-server:${logging_command_result}  ${result_dir}/logs/ptn4/apache/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nodejs-server:${logging_command_result}  ${result_dir}/logs/ptn4/node/${now_connection}/${loop_counter}/
 		### Oracl
-		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@oracle-server:${logging_command_result}  ${result_dir}/logs/ptn4/apache/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@oracle-server:${logging_command_result}  ${result_dir}/logs/ptn4/oracle/${now_connection}/${loop_counter}/
 	
 	done
 
@@ -338,11 +338,11 @@ do
 		
 		# パターン5の各サーバのリソースログを取得する
 		### Nginx
-		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${logging_command_result}   ${result_dir}/logs/ptn5/apache/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${logging_command_result}   ${result_dir}/logs/ptn5/nginx/${now_connection}/${loop_counter}/
 		### Node.js
-		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nodejs-server:${logging_command_result}  ${result_dir}/logs/ptn5/apache/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nodejs-server:${logging_command_result}  ${result_dir}/logs/ptn5/node/${now_connection}/${loop_counter}/
 		### MongoDB
-		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@mongo-server:${logging_command_result}   ${result_dir}/logs/ptn5/apache/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@mongo-server:${logging_command_result}   ${result_dir}/logs/ptn5/mongo/${now_connection}/${loop_counter}/
 	
 	done
 
