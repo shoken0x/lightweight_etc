@@ -111,9 +111,9 @@ do
 		
 		# Apache2.2、JBoss、Oracleサーバを再起動
 		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn1.rb stop
-		sleep 300
+		sleep 180
 		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn1.rb start
-		sleep 300
+		sleep 180
 
 		# リソースログ取得用シェルを起動する
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root apache22-server "${logging_command_start}"
@@ -211,9 +211,9 @@ do
 		
 		# Nginx、Node.js、Oracleサーバを再起動
 		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn4.rb stop
-		sleep 300
+		sleep 180
 		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn4.rb start
-		sleep 300
+		sleep 180
 		
 		# リソースログ取得用シェルを起動する
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server  "${logging_command_start}"
@@ -310,9 +310,9 @@ do
 		
 		# Nginx、Node.js、MongoDBサーバを再起動
 		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn5.rb stop
-		sleep 300
+		sleep 180
 		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn5.rb start
-		sleep 300
+		sleep 180
 
                 # リソースログ取得用シェルを起動する
                 ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server  "${logging_command_start}"
