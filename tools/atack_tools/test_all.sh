@@ -47,6 +47,7 @@ jboss_boot_log="/opt/jboss-as-7.1.1.Final/standalone/log/boot.log"
 jboss_server_log="/opt/jboss-as-7.1.1.Final/standalone/log/server.log"
 ### Oracle
 oracle_clsc_log="/u01/app/oracle/product/11.2.0/dbhome_1/log/oracle-server/client/clsc.log"
+oracle_alert_log="/u01/app/oracle/diag/rdbms/xe/XE/trace/alert_XE.log"
 ### Nginx
 nginx_access_log="/opt/nginx/logs/access.log"
 nginx_error_log="/opt/nginx/logs/error.log"
@@ -137,6 +138,7 @@ do
 		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@jboss-server:${jboss_server_log}       ${result_dir}/logs/ptn1/jboss/${now_connection}/${loop_counter}/
 		### Oracle
 		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@oracle-server:${oracle_clsc_log}       ${result_dir}/logs/ptn1/oracle/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@oracle-server:${oracle_alert_log}       ${result_dir}/logs/ptn1/oracle/${now_connection}/${loop_counter}/
 		
 		# パターン1の各サーバのリソースログを取得する
 		### Apache2.2
@@ -230,12 +232,13 @@ do
 		
 		# パターン4の各ミドルのログを取得する
 		### Nginx
-		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${nginx_error_log}  ${result_dir}/logs/ptn4/nginx/${now_connection}/${loop_counter}/
-		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${nginx_access_log} ${result_dir}/logs/ptn4/nginx/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${nginx_error_log}   ${result_dir}/logs/ptn4/nginx/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nginx-server:${nginx_access_log}  ${result_dir}/logs/ptn4/nginx/${now_connection}/${loop_counter}/
 		### Node.js
-		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nodejs-server:${node_log}        ${result_dir}/logs/ptn4/node/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@nodejs-server:${node_log}         ${result_dir}/logs/ptn4/node/${now_connection}/${loop_counter}/
 		### Oracle
-		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@oracle-server:${oracle_clsc_log} ${result_dir}/logs/ptn4/oracle/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@oracle-server:${oracle_clsc_log}  ${result_dir}/logs/ptn4/oracle/${now_connection}/${loop_counter}/
+		scp -P 22 -i ~/.ssh/lwRandDkey.pem root@oracle-server:${oracle_alert_log} ${result_dir}/logs/ptn4/oracle/${now_connection}/${loop_counter}/
 		
 		# パターン4の各サーバのリソースログを取得する
 		### Nginx
