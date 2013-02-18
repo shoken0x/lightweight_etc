@@ -108,7 +108,8 @@ do
 			> ${jboss_boot_log};      > ${jboss_server_log}"
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server   "hostname;\
 			cp ${oracle_clsc_log} ${oracle_clsc_log}_${result_sub_dir}_${loop_counter};\
-			> ${oracle_clsc_log}"
+			cp ${oracle_alert_log} ${oracle_alert_log}_${result_sub_dir}_${loop_counter};\
+			> ${oracle_clsc_log};     > ${oracle_alert_log}"
 		
 		# Apache2.2、JBoss、Oracleサーバを再起動
 		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn1.rb stop
@@ -209,7 +210,8 @@ do
 			> ${node_log}"
                 ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server   "hostname;\
                         cp ${oracle_clsc_log} ${oracle_clsc_log}_${result_sub_dir}_${loop_counter};\
-                        > ${oracle_clsc_log}"
+			cp ${oracle_alert_log} ${oracle_alert_log}_${result_sub_dir}_${loop_counter};\
+			> ${oracle_clsc_log};     > ${oracle_alert_log}"
 		
 		# Nginx、Node.js、Oracleサーバを再起動
 		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn4.rb stop
