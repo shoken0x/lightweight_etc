@@ -19,7 +19,7 @@ echo `date "+%Y/%m/%d %H:%M:%S"` > $WORK_DIR/stop_time.txt
 
 # kill processes
 kill_process "sadc"
-kill_process "top"
+#kill_process "top"
 kill_process "jstat_openam"
 kill_process "jstat_app"
 kill_process "jstat_in"
