@@ -2,10 +2,10 @@
 
 # 使用方法
 # 
-# test_all start incremental end
+# test_sample start incremental end
 #
-# ex) test_all 1000 1000 10000
-#     1000件の同時接続から開始し、1000件ずつ増やし、10000件までテストする。
+# ex) test_sample 1000 1000 10000
+#     1000件の同時接続から開始し、1000件ずつ増やし、10000件までテストする。（サンプルでテストする）
 #
 
 # 引数チェック
@@ -23,7 +23,7 @@ ptn4_flg=1
 ptn5_flg=1
 
 # 結果を格納するディレクトリ
-result_root_dir="/opt/result"
+result_root_dir="/opt/sample_result"
 result_sub_dir=`date +%Y-%m-%d-%H%M%S`
 result_dir=${result_root_dir}/${result_sub_dir}
 mkdir ${result_dir}
@@ -129,7 +129,7 @@ do
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server   "${logging_command_start}"
 		
 		# sfatack_randツールを使ってパターン1に同時アクセスを試みる
-		/git/lightweight_etc/tools/atack_tools/sfatack_rand ${now_connection} 3 10.0.0.14 /oracle
+		/git/lightweight_etc/tools/atack_tools/sfatack ${now_connection} 3 10.0.0.14 /sample/sample.jsp
 		
 		# リソースログ取得用シェルを終了する
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root apache22-server "${logging_command_stop}"
@@ -233,7 +233,7 @@ do
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server "${logging_command_start}"
 
 		# sfatack_randツールを使ってパターン4に同時アクセスを試みる
-		/git/lightweight_etc/tools/atack_tools/sfatack_rand ${now_connection} 3 10.0.0.16 /oracle
+		/git/lightweight_etc/tools/atack_tools/sfatack ${now_connection} 3 10.0.0.16 /oracle
 		
 		# リソースログ取得用シェルを終了する
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server  "${logging_command_stop}"
@@ -335,7 +335,7 @@ do
                 ssh -n -i ~/.ssh/lwRandDkey.pem -l root mongo-server  "${logging_command_start}"
 		
 		# sfatack_randツールを使ってパターン5に同時アクセスを試みる
-		/git/lightweight_etc/tools/atack_tools/sfatack_rand ${now_connection} 3 10.0.0.16 /mongo
+		/git/lightweight_etc/tools/atack_tools/sfatack ${now_connection} 3 10.0.0.16 /mongo
 
                 # リソースログ取得用シェルを終了する
                 ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server  "${logging_command_stop}"
