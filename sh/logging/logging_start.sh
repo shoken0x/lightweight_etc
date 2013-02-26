@@ -32,10 +32,12 @@ echo $PID > $WORK_DIR/sadc.pid
 echo "sysstat pid : $PID"
 
 # top
-top -b -d $INTERVAL_SEC > $WORK_DIR/top.log &
-PID=$!
-echo $PID > $WORK_DIR/top.pid
-echo "top pid : $PID"
+#top -b -d $INTERVAL_SEC > $WORK_DIR/top.log &
+#PID=$!
+#echo $PID > $WORK_DIR/top.pid
+#echo "top pid : $PID"
+#
+#ps aux | grep ${PID}
 
 # netstat
 (
@@ -48,6 +50,8 @@ echo "top pid : $PID"
 PID=$!
 echo $PID > $WORK_DIR/netstat.pid
 echo "netstat pid : $PID"
+
+ps aux | grep ${PID}
 
 # jstat(OpenAM)
 # exec_jstat "openam"
@@ -68,3 +72,5 @@ echo "netstat pid : $PID"
 ##        cnt=$((cnt+1))
 ##    fi
 ##done
+
+exit 0

@@ -97,8 +97,8 @@
                     <connection-url>jdbc:oracle:thin:@oracle-server:1521:XE</connection-url>
                     <driver>oracle</driver>
                     <pool>
-                        <min-pool-size>700</min-pool-size>
-                        <max-pool-size>700</max-pool-size>
+                        <min-pool-size>800</min-pool-size>
+                        <max-pool-size>800</max-pool-size>
                     </pool>
                     <security>
                         <user-name>test</user-name>
