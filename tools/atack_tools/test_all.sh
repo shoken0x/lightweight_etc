@@ -19,8 +19,8 @@ fi
 count_for_average=1
 # 実施フラグ
 ptn1_flg=1
-ptn4_flg=1
-ptn5_flg=1
+ptn4_flg=0
+ptn5_flg=0
 
 # 結果を格納するディレクトリ
 result_root_dir="/opt/result"
@@ -32,14 +32,17 @@ mkdir ${result_dir}/logs/ptn1
 mkdir ${result_dir}/logs/ptn1/apache
 mkdir ${result_dir}/logs/ptn1/jboss
 mkdir ${result_dir}/logs/ptn1/oracle
+mkdir ${result_dir}/logs/ptn1/stdout/
 mkdir ${result_dir}/logs/ptn4
 mkdir ${result_dir}/logs/ptn4/nginx
 mkdir ${result_dir}/logs/ptn4/node
 mkdir ${result_dir}/logs/ptn4/oracle
+mkdir ${result_dir}/logs/ptn4/stdout/
 mkdir ${result_dir}/logs/ptn5
 mkdir ${result_dir}/logs/ptn5/nginx
 mkdir ${result_dir}/logs/ptn5/node
 mkdir ${result_dir}/logs/ptn5/mongo
+mkdir ${result_dir}/logs/ptn5/stdout/
 summary_file=${result_root_dir}/${result_sub_dir}/summary
 
 # 取得するログファイルへのフルパス
@@ -87,6 +90,7 @@ do
 	mkdir ${result_dir}/logs/ptn1/apache/${now_connection}
 	mkdir ${result_dir}/logs/ptn1/jboss/${now_connection}
 	mkdir ${result_dir}/logs/ptn1/oracle/${now_connection}
+	mkdir ${result_dir}/logs/ptn1/stdout/${now_connection}
 	
 	##### 平均値取得用ループ #####
 	loop_counter=0
@@ -100,9 +104,19 @@ do
 			mkdir ${result_dir}/logs/ptn1/apache/${now_connection}/${loop_counter}
 			mkdir ${result_dir}/logs/ptn1/jboss/${now_connection}/${loop_counter}
 			mkdir ${result_dir}/logs/ptn1/oracle/${now_connection}/${loop_counter}
+			mkdir ${result_dir}/logs/ptn1/stdout/${now_connection}/${loop_counter}
 		fi
 		echo "${loop_counter}回目"
 	
+		# Apache2.2、JBoss、Oracleサーバを再起動
+		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn1.rb stop
+		sleep 180
+		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn1.rb start
+		sleep 180
+
+		# ウォームアップ
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand 100 3 10.0.0.14 /oracle
+
 		# Apache2.2、JBoss、Oracleのログをローテーションして消去
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root apache22-server "hostname;\
 			cp ${apache22_access_log} ${apache22_access_log}_${result_sub_dir}_${loop_counter};\
@@ -117,21 +131,21 @@ do
 			cp ${oracle_alert_log} ${oracle_alert_log}_${result_sub_dir}_${loop_counter};\
 			> ${oracle_clsc_log};     > ${oracle_alert_log}"
 		
-		# Apache2.2、JBoss、Oracleサーバを再起動
-		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn1.rb stop
-		sleep 180
-		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn1.rb start
-		sleep 180
 
 		# リソースログ取得用シェルを起動する
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root apache22-server "${logging_command_start}"
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root jboss-server    "${logging_command_start}"
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server   "${logging_command_start}"
+		sleep 5
 		
 		# sfatack_randツールを使ってパターン1に同時アクセスを試みる
-		/git/lightweight_etc/tools/atack_tools/sfatack_rand ${now_connection} 3 10.0.0.14 /oracle
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand `expr ${now_connection} '/' 4` 3 10.0.0.14 /oracle > ${result_dir}/logs/ptn1/stdout/${now_connection}/${loop_counter}/stdout1.log &
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand `expr ${now_connection} '/' 4` 3 10.0.0.14 /oracle > ${result_dir}/logs/ptn1/stdout/${now_connection}/${loop_counter}/stdout2.log &
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand `expr ${now_connection} '/' 4` 3 10.0.0.14 /oracle > ${result_dir}/logs/ptn1/stdout/${now_connection}/${loop_counter}/stdout3.log &
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand `expr ${now_connection} '/' 4` 3 10.0.0.14 /oracle > ${result_dir}/logs/ptn1/stdout/${now_connection}/${loop_counter}/stdout4.log
 		
 		# リソースログ取得用シェルを終了する
+		sleep 5
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root apache22-server "${logging_command_stop}"
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root jboss-server    "${logging_command_stop}"
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server   "${logging_command_stop}"
@@ -192,6 +206,7 @@ do
 	mkdir ${result_dir}/logs/ptn4/nginx/${now_connection}
 	mkdir ${result_dir}/logs/ptn4/node/${now_connection}
 	mkdir ${result_dir}/logs/ptn4/oracle/${now_connection}
+	mkdir ${result_dir}/logs/ptn4/stdout/${now_connection}
 	
 	##### 平均値取得用ループ #####
 	loop_counter=0
@@ -205,8 +220,18 @@ do
 			mkdir ${result_dir}/logs/ptn4/nginx/${now_connection}/${loop_counter}
 			mkdir ${result_dir}/logs/ptn4/node/${now_connection}/${loop_counter}
 			mkdir ${result_dir}/logs/ptn4/oracle/${now_connection}/${loop_counter}
+			mkdir ${result_dir}/logs/ptn4/stdout/${now_connection}/${loop_counter}
 		fi
 		echo "${loop_counter}回目"
+
+		# Nginx、Node.js、Oracleサーバを再起動
+		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn4.rb stop
+		sleep 180
+		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn4.rb start
+		sleep 180
+
+		# ウォームアップ
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand 100 3 10.0.0.16 /oracle
 	
 		# Nginx、Node.js、MongoDBのログをローテーションして消去
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server "hostname;\
@@ -221,21 +246,21 @@ do
 			cp ${oracle_alert_log} ${oracle_alert_log}_${result_sub_dir}_${loop_counter};\
 			> ${oracle_clsc_log};     > ${oracle_alert_log}"
 		
-		# Nginx、Node.js、Oracleサーバを再起動
-		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn4.rb stop
-		sleep 180
-		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn4.rb start
-		sleep 180
 		
 		# リソースログ取得用シェルを起動する
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server  "${logging_command_start}"
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nodejs-server "${logging_command_start}"
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server "${logging_command_start}"
+		sleep 5
 
 		# sfatack_randツールを使ってパターン4に同時アクセスを試みる
-		/git/lightweight_etc/tools/atack_tools/sfatack_rand ${now_connection} 3 10.0.0.16 /oracle
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand `expr ${now_connection} '/' 4` 3 10.0.0.16 /oracle > ${result_dir}/logs/ptn4/stdout/${now_connection}/${loop_counter}/stdout1.log &
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand `expr ${now_connection} '/' 4` 3 10.0.0.16 /oracle > ${result_dir}/logs/ptn4/stdout/${now_connection}/${loop_counter}/stdout2.log &
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand `expr ${now_connection} '/' 4` 3 10.0.0.16 /oracle > ${result_dir}/logs/ptn4/stdout/${now_connection}/${loop_counter}/stdout3.log &
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand `expr ${now_connection} '/' 4` 3 10.0.0.16 /oracle > ${result_dir}/logs/ptn4/stdout/${now_connection}/${loop_counter}/stdout4.log
 		
 		# リソースログ取得用シェルを終了する
+		sleep 5
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server  "${logging_command_stop}"
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nodejs-server "${logging_command_stop}"
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root oracle-server "${logging_command_stop}"
@@ -295,6 +320,7 @@ do
 	mkdir ${result_dir}/logs/ptn5/nginx/${now_connection}
 	mkdir ${result_dir}/logs/ptn5/node/${now_connection}
 	mkdir ${result_dir}/logs/ptn5/mongo/${now_connection}
+	mkdir ${result_dir}/logs/ptn5/stdout/${now_connection}
 	
 	##### 平均値取得用ループ #####
 	loop_counter=0
@@ -308,8 +334,18 @@ do
 			mkdir ${result_dir}/logs/ptn5/nginx/${now_connection}/${loop_counter}
 			mkdir ${result_dir}/logs/ptn5/node/${now_connection}/${loop_counter}
 			mkdir ${result_dir}/logs/ptn5/mongo/${now_connection}/${loop_counter}
+			mkdir ${result_dir}/logs/ptn5/stdout/${now_connection}/${loop_counter}
 		fi
 		echo "${loop_counter}回目"
+		
+		# Nginx、Node.js、MongoDBサーバを再起動
+		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn5.rb stop
+		sleep 180
+		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn5.rb start
+		sleep 180
+
+		# ウォームアップ
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand 100 3 10.0.0.16 /mongo
 	
 		# Nginx、Node.js、MongoDBのログをローテーションして消去
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server "hostname;\
@@ -322,22 +358,21 @@ do
 		ssh -n -i ~/.ssh/lwRandDkey.pem -l root mongo-server   "hostname;\
 			cp ${mongo_log} ${mongo_log}_${result_sub_dir}_${loop_counter};\
 			> ${mongo_log}"
-		
-		# Nginx、Node.js、MongoDBサーバを再起動
-		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn5.rb stop
-		sleep 180
-		ruby /git/lightweight_etc/aws-sh/ec2ctl_ptn5.rb start
-		sleep 180
 
                 # リソースログ取得用シェルを起動する
                 ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server  "${logging_command_start}"
                 ssh -n -i ~/.ssh/lwRandDkey.pem -l root nodejs-server "${logging_command_start}"
                 ssh -n -i ~/.ssh/lwRandDkey.pem -l root mongo-server  "${logging_command_start}"
+		sleep 5
 		
 		# sfatack_randツールを使ってパターン5に同時アクセスを試みる
-		/git/lightweight_etc/tools/atack_tools/sfatack_rand ${now_connection} 3 10.0.0.16 /mongo
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand `expr ${now_connection} '/' 4` 3 10.0.0.16 /mongo > ${result_dir}/logs/ptn5/stdout/${now_connection}/${loop_counter}/stdout1.log &
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand `expr ${now_connection} '/' 4` 3 10.0.0.16 /mongo > ${result_dir}/logs/ptn5/stdout/${now_connection}/${loop_counter}/stdout2.log &
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand `expr ${now_connection} '/' 4` 3 10.0.0.16 /mongo > ${result_dir}/logs/ptn5/stdout/${now_connection}/${loop_counter}/stdout3.log &
+		/git/lightweight_etc/tools/atack_tools/sfatack_rand `expr ${now_connection} '/' 4` 3 10.0.0.16 /mongo > ${result_dir}/logs/ptn5/stdout/${now_connection}/${loop_counter}/stdout4.log
 
                 # リソースログ取得用シェルを終了する
+		sleep 5
                 ssh -n -i ~/.ssh/lwRandDkey.pem -l root nginx-server  "${logging_command_stop}"
                 ssh -n -i ~/.ssh/lwRandDkey.pem -l root nodejs-server "${logging_command_stop}"
                 ssh -n -i ~/.ssh/lwRandDkey.pem -l root mongo-server  "${logging_command_stop}"

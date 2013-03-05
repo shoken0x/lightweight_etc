@@ -16,7 +16,7 @@ if [ $# -ne 3 ]; then
 fi
 
 # 平均値取得用試行回数
-count_for_average=1
+count_for_average=2
 # 実施フラグ
 ptn1_flg=1
 ptn4_flg=1

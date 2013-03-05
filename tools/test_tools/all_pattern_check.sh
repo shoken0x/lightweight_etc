@@ -1,7 +1,7 @@
 #!/bin/sh
 
 PATTERN1_URL=http://apache22.lwrandd.mobi/sample/sample.jsp
-PATTERN1_WORD=11.2.0.2.0
+PATTERN1_WORD=11.2.0.1.0
 
 PATTERN2_URL=http://apache24.lwrandd.mobi/oracle
 PATTERN2_WORD=fujisaki
